@@ -25,7 +25,7 @@ CREATE TABLE play_type(
 CREATE TABLE play_info(
   id SERIAL PRIMARY KEY NOT NULL,
   game_id INT NOT NULL REFERENCES game_info(id),
-  team_id  INT REFERENCES team_info(id),
+  -- team_id  INT REFERENCES team_info(id),
   play_type_id INT NOT NULL REFERENCES play_type(id),
   player_id INT REFERENCES player_info(id),
   -- period INT,

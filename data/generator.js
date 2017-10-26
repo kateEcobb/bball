@@ -1,15 +1,20 @@
 //alread have players, play type, and team info (copy into storage to reference)
 //grab two random teams, current timestamp for game info (save game id)
 
-//generate 20,000 games
+//generate 40,000 games
+var fs = require('fs');
+var moment = require('moment');
+var data = require('./playerTeamArrays.js');
 
-var data = require('./playerTeamArrays.js')
+var allGames = [];
+var allPlays = [];
 
 var getRandomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-var startGame = (gameId) => {
+var startGame = (gameId, startTime) => {
+
   //get 2 random teams
   var random1 = getRandomInt(0, 29);
   var homeTeam = data.teams[random1].id;
@@ -18,10 +23,16 @@ var startGame = (gameId) => {
     random2 = getRandomInt(0, 29);
   }
   var awayTeam = data.teams[random2].id;
-  //write to csv
+
+  var gameLine = `${homeTeam},${awayTeam},${startTime}\n`;
+
+  //save plays
+  allGames.push(gameLine);
+
   var gameInfo = {gameId, homeTeam, awayTeam};
   return gameInfo;
 }
+
 var getPlayers = (teamId) => {
   var teamRoster = [];
   data.players.forEach((player) => {
@@ -33,44 +44,51 @@ var getPlayers = (teamId) => {
 }
 
 class Ballgame {
-  constructor({gameId, homeTeam, awayTeam}) {
-    this.gameId;
-    this.homeTeam;
-    this.awayTeam;
+
+  constructor(options) {
+    this.gameId = options.gameId;
+    this.homeTeam = options.homeTeam;
+    this.awayTeam = options.awayTeam;
     this.homeScore = 0;
     this.awayScore = 0;
-    this.gameTime = 0;
+    this.gameTime = -1;
     this.homePlayers = getPlayers(this.homeTeam);
     this.awayPlayers = getPlayers(this.awayTeam);
-    this.plays = []
-    //720 seconds in a quarter
-    //2880 seconds in a game
   }
+
   initiatePlayCreation() {
-    //keep calling create play until
+    //keep calling create play until game is over
+    //2880 seconds in a game
     while(this.gameTime < 2880) {
       this._createPlay();
     }
   }
+
   _createPlay() {
     //if game time is zero write start of period
+    // console.log('new row', this.plays)
+
     var playType;
     var player = null;
     var points = null;
     var playLength = 0;
     var team = null;
-    if(this.gameTime === 0) {
+
+    if(this.gameTime === -1) {
       playType = 1;
+      this.gameTime = 0;
+      var playLine = `${this.gameId},,,,${this.homeScore},${this.awayScore},${playLength}`
     } else {
       //generate random play type
       playType = data.playTypes[getRandomInt(0,1)].id
       //generate random player
       team = getRandomInt(0,1);
       if(team) {
-        player = this.homePlayers[getRandomInt(0, this.homePlayers.length-1)];
+        player = this.homePlayers[getRandomInt(0, this.homePlayers.length-1)].playerId;
       } else {
-        player = this.awayPlayers[getRandomInt(0, this.awayPlayers.length-1)];
+        player = this.awayPlayers[getRandomInt(0, this.awayPlayers.length-1)].playerId;
       } 
+
       //generate point val if random play type = shot
       if(playType === 4) {
         points = getRandomInt(2,3);
@@ -80,6 +98,8 @@ class Ballgame {
         } else {
           this.awayScore+= points;
         }
+      } else if (playType === 5) {
+        points = 0;
       }
 
       //generate length of play
@@ -87,71 +107,38 @@ class Ballgame {
         playLength = 2880 - this.gameTime;
       } else {
         playLength = getRandomInt(1, 24);
-        this.gameTime+= playLength;
       }
+      this.gameTime+= playLength;
     }
-  }
-  _savePlay() {
-    //save to array, insert when done
+
+    //save plays
+    var playLine = `${this.gameId},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength}`
+    allPlays.push(playLine);
   }
 }
-
-
-
 
 var createGame = () => {
   
   var gameCount = 1;
-  while(gameCount < 3) {
-    var gameInfo = startGame(gameCount);
+  //aug 1 2017
+  var gameStartDate = moment(1501608234000);
+  while(gameCount < 5000) {
+    var gameInfo = startGame(gameCount, gameStartDate.format());
     var game = new Ballgame(gameInfo);
     game.initiatePlayCreation();
+    gameStartDate.add(5, 'minutes');
     gameCount++;  
   }
+  //save games
+  fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
+    if (err) throw err;
+    // console.log(`${gameLine} was appended to file!`);
+  });
+  //save plays
+  fs.appendFile('./data/play_info.csv', allPlays.join('\n') + '\n', (err) => {
+    if (err) throw err;
+    // console.log(`${playLine} was appended to file!`);
+  });
   
 }
 createGame();
-
-
-
-
-
-
-
-//play info mvp
-/*
-keep a running total of current game time => sum of all play length
-
-use game id
-team id = randomly pick one
-play type id = random between
-player id = randomly choose from team roster
-period = based on total game time 
-points = if play type is shot, choose 2 or 3 (weigthed)
-home score = keep running track
-away score = keep running track
-play length = random between 1-24 seconds (turnover, sub, free throw, end of period, timeout all 0) => decide what all you're going to use
-*/
-
-
-
-/*
-keep a running total of current game time => sum of all play length
-
-use game id
-team id = randomly pick one
-play type id = random
-player id = randomly choose from team roster
-period = based on total game time 
-points = if play type is shot, choose 2 or 3 (weigthed)
-home score = keep running track
-away score = keep running track
-play length = random between 1-24 seconds (turnover, sub, free throw, end of period, timeout all 0) => decide what all you're going to use
-x = random 0-50 (x 0-5, 4-5 and y 0-12, 80-100 ish is 3 pt)
-y = team 1 0-50, team2 50-100 (three point depends on ths?)
-
-*/
-
-
-
-//cron job 1/hr
