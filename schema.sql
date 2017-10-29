@@ -32,5 +32,6 @@ CREATE TABLE play_info(
   points INT,
   home_score INT,
   away_score INT,
-  play_length INT
+  play_length INT,
+  total_game_time TIMESTAMP
 );
