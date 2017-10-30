@@ -7,6 +7,10 @@
 
 // app.listen(3000);
 
+var moment = require('moment');
+
+
+
 var elasticsearch = require('elasticsearch');
 var generate = require('../data/generator.js')
 var client = new elasticsearch.Client({
@@ -14,44 +18,31 @@ var client = new elasticsearch.Client({
   log: 'trace'
 });
 
-// var elasticsearchInsert = (info) => {
-//   // console.log('data>>>>>>>>>>', dataArray)
-//   client.bulk({
-//     body: info
-//   }, function (err, resp) {
-//     console.log('error>>>>>>>>', err)
-//     console.log('response>>>>>>>>', resp)
-//   });
-// }
-
 client.ping({
   requestTimeout: 30000,
-}, function (error) {
-  if (error) {
-    console.error('elasticsearch cluster is down!');
-  } else {
-    console.log('All is well');
-    var dataArray = generate.creator();
-    // client.bulk({
-    //   body: dataArray
-    // }, function (err, resp) {
-    //   console.log('error>>>>>>>>', err)
-    //   console.log('response>>>>>>>>', resp)
-    // });
-  }
-});
-// client.indices.delete({
-//   index: 'test_index',
-//   ignore: [404]
-// }).then(function (body) {
-//   // since we told the client to ignore 404 errors, the
-//   // promise is resolved even if the index does not exist
-//   console.log('index was deleted or never existed');
-// }, function (error) {
-//   // oh no!
-// });
+})
+.then((response) => {
+  console.log('All is well');
+})
+.catch((err) => {console.log('error')})
 
-// var dataArray = generate.creator(elasticsearchInsert);
+var massProduce = (gameId, startDate) => {
+  var dataArray = generate.creator(gameId, startDate);
+  client.bulk({body: dataArray})
+  .then((response) => {
+    console.log('insertresponse', response)
+  })
+  .catch((err) => {console.log('error', err)})
+}
+
+var totalGames = 4000;
+var gamesSoFar = 0;
+var gameStartTime = moment(1501608234000);
+while(gamesSoFar < totalGames) {
+  massProduce(gamesSoFar+1, gameStartTime);
+  gamesSoFar+=1000;
+  gameStartTime =gameStartTime.add(3, 'days')
+}
 
 /*
 
