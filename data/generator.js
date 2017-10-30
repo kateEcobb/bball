@@ -66,7 +66,7 @@ class Ballgame {
   initiatePlayCreation() {
     //keep calling create play until game is over
     //2880 seconds in a game
-    while(this.gameTime < 2880) {
+   while(this.gameTime < 2880) {
       this._createPlay();
     }
   }
@@ -84,7 +84,7 @@ class Ballgame {
     if(this.gameTime === -1) {
       playType = 1;
       this.gameTime = 0;
-      var playLine = `${this.gameId},,,,${this.homeScore},${this.awayScore},${playLength}`;
+      var playLine = `${this.gameId},${playType},,,${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`;
       playTypeName = 'start of game';
     } else {
       //generate random play type
@@ -127,10 +127,11 @@ class Ballgame {
       this.gameTime+= playLength;
       this.currentTime = this.currentTime.add(playLength, 'seconds');
       // console.log(this.currentTime.format());
+      //save plays
+      var playLine = `${this.gameId},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`
     }
 
-    //save plays
-    var playLine = `${this.gameId},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength}`
+    
     allPlays.push(playLine);
     var elastiObj = {
       gameDate: this.gameStart,
@@ -150,12 +151,13 @@ class Ballgame {
   }
 }
 
-var createGame = () => {
+var createGame = (gameId, gameStart) => {
   
-  var gameCount = 1;
+  var gameCount = gameId;
   //aug 1 2017
-  var gameStartDate = moment(1501608234000);
-  while(gameCount < 15000) {
+  //1501608234000
+  var gameStartDate = moment(gameStart);
+  while(gameCount < gameId + 1000) {
     var gameInfo = startGame(gameCount, gameStartDate.format());
     var game = new Ballgame(gameInfo, gameStartDate.format());
     game.initiatePlayCreation();
@@ -173,12 +175,16 @@ var createGame = () => {
     if (err) throw err;
     // console.log(`${gameLine} was appended to file!`);
   });
+  allGames = [];
   //save plays
   fs.appendFile('./data/play_info.csv', allPlays.join('\n') + '\n', (err) => {
     if (err) throw err;
     // console.log(`${playLine} was appended to file!`);
   });
-  return elastiRows;
+  allPlays = [];
+  var returnVal = elastiRows;
+  elastiRows = [];
+  return returnVal;
 }
 // createGame();
 module.exports.creator = createGame;
