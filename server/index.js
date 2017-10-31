@@ -1,15 +1,5 @@
-// var express = require('express');
-// var app = express();
-
-// app.get('/', function(req, res){
-//   res.send('hello world');
-// });
-
-// app.listen(3000);
 
 var moment = require('moment');
-
-
 
 var elasticsearch = require('elasticsearch');
 var generate = require('../data/generator.js')
@@ -18,31 +8,45 @@ var client = new elasticsearch.Client({
   log: 'trace'
 });
 
-client.ping({
-  requestTimeout: 30000,
-})
-.then((response) => {
-  console.log('All is well');
-})
-.catch((err) => {console.log('error')})
+// client.ping({
+//   requestTimeout: 30000,
+// })
+// .then((response) => {
+//   console.log('All is well');
+// })
+// .catch((err) => {console.log('error')})
 
-var massProduce = (gameId, startDate) => {
-  var dataArray = generate.creator(gameId, startDate);
-  client.bulk({body: dataArray})
-  .then((response) => {
-    console.log('insertresponse', response)
-  })
-  .catch((err) => {console.log('error', err)})
+var massProduce = (gameId, startDate, fakeReq) => {
+  var dataArray = generate.creator(gameId, startDate, fakeReq);
+  // if(!fakeReq) {
+  //   return client.bulk({body: dataArray});
+  // }
 }
 
-var totalGames = 4000;
-var gamesSoFar = 0;
-var gameStartTime = moment(1501608234000);
-while(gamesSoFar < totalGames) {
-  massProduce(gamesSoFar+1, gameStartTime);
-  gamesSoFar+=1000;
-  gameStartTime =gameStartTime.add(3, 'days')
+var batch = /*async*/ (totalGames, startDate, fakeReq) => {
+
+  // var totalGames = 40000;
+  var gamesSoFar = 0;
+  // var gameStartTime = moment(1501608234000);
+  var gameStartTime = moment(startDate);
+  while(gamesSoFar < totalGames) {
+    massProduce(gamesSoFar+1, gameStartTime, fakeReq);
+    // await massProduce(gamesSoFar+1, gameStartTime, fakeReq)
+    // .then((res) => {
+    //   console.log('res', res)
+    // })
+    // .catch((err) => {
+    //   console.log('err', err)
+    // })
+    // gamesSoFar+=200;
+    gamesSoFar+=1;
+    gameStartTime =gameStartTime.add(3, 'days')
+  }
+
 }
+// batch();
+
+module.exports.batch = batch;
 
 /*
 
