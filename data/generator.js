@@ -1,10 +1,8 @@
-//alread have players, play type, and team info (copy into storage to reference)
-//grab two random teams, current timestamp for game info (save game id)
-
-//generate 40,000 games
 var fs = require('fs');
 var moment = require('moment');
 var data = require('./playerTeamArrays.js');
+var send = require('../externalsimulation/sendReq.js');
+var request = require('request');
 
 var allGames = [];
 var allPlays = [];
@@ -48,7 +46,7 @@ var getPlayers = (teamId) => {
 
 class Ballgame {
 
-  constructor(options, gameStart) {
+  constructor(options, gameStart, fakeReq) {
     this.gameId = options.gameId;
     this.homeTeam = options.homeTeam;
     this.awayTeam = options.awayTeam;
@@ -61,6 +59,7 @@ class Ballgame {
     this.awayTeamName = options.awayTeamName;
     this.gameStart = gameStart;
     this.currentTime = moment(gameStart);
+    this.fakeReq = fakeReq;
   }
 
   initiatePlayCreation() {
@@ -146,42 +145,79 @@ class Ballgame {
       homeScore: this.homeScore,
       awayScore: this.awayScore
     }
-    elastiRows.push( { index:  { _index: 'bball', _type: 'firstshot' } },)
-    elastiRows.push(elastiObj);
+    if(!this.fakeReq) {
+      elastiRows.push(JSON.stringify({ index:  { _index: 'rocket', _type: 'firstshot' } },))
+    } 
+    elastiRows.push(JSON.stringify(elastiObj));
   }
 }
 
-var createGame = (gameId, gameStart) => {
+var createGame = (gameId, gameStart, fakeReq) => {
   
   var gameCount = gameId;
   //aug 1 2017
   //1501608234000
   var gameStartDate = moment(gameStart);
-  while(gameCount < gameId + 1000) {
+  while(gameCount < gameId + 1 /*200*/) {
     var gameInfo = startGame(gameCount, gameStartDate.format());
-    var game = new Ballgame(gameInfo, gameStartDate.format());
+    var game = new Ballgame(gameInfo, gameStartDate.format(), fakeReq);
     game.initiatePlayCreation();
-
-    // //send to elasticsearch
-    // cb(elastiRows);
-    // elastiRows = [];
 
     gameStartDate.add(5, 'minutes');
     gameCount++;  
   }
   
   //save games
-  fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
-    if (err) throw err;
-    // console.log(`${gameLine} was appended to file!`);
-  });
+  if(!fakeReq) {
+    fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
+      if (err) throw err;
+    });
+    fs.appendFile('./data/play_info.csv', allPlays.join('\n') + '\n', (err) => {
+      if (err) throw err;
+    });
+    // var xxx = elastiRows.join('\n');
+    // fs.appendFile('./data/elasicsearchData.json', xxx, (err) => {
+    //   if (err) throw err;
+    // });
+  } else {
+    // var xxx = elastiRows.join(',');
+    // fs.appendFile('./data/elasicsearchData.json', JSON.stringify(elastiRows), (err) => {
+    //   if (err) throw err;
+    // });
+    //send http request
+    // console.log(JSON.parse(elastiRows[0]))
+    // var ss = JSON.parse(elastiRows[0])
+    // var data = {test:'test'}
+    // request.post({
+    // url: 'http://localhost:3000/newgame',
+    // // method: 'POST',
+    // headers: {'content-type': 'application/json'},
+    // // 'Content-Type': 'application/json',
+    // body: elastiRows[0]});
+
+    // elastiRows.forEach((val, i) => {
+    //   if(i === 0) {
+
+     
+    //   request.post({
+    //     url: 'http://localhost:3000/newgame',
+    //     // method: 'POST',
+    //     headers: {'content-type': 'application/json'},
+    //     // 'Content-Type': 'application/json',
+    //     body: val});
+
+    //   }
+    // })
+    send.sendGame(elastiRows)
+
+
+  }
+
   allGames = [];
-  //save plays
-  fs.appendFile('./data/play_info.csv', allPlays.join('\n') + '\n', (err) => {
-    if (err) throw err;
-    // console.log(`${playLine} was appended to file!`);
-  });
   allPlays = [];
+  // console.log(typeof elastiRows[0])
+
+
   var returnVal = elastiRows;
   elastiRows = [];
   return returnVal;
