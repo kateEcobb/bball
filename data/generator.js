@@ -134,7 +134,7 @@ class Ballgame {
     allPlays.push(playLine);
     var elastiObj = {
       gameDate: this.gameStart,
-      hometeam: this.homeTeamName,
+      homeTeam: this.homeTeamName,
       awayTeam: this.awayTeamName,
       firstName: playerFn,
       lastName: playerLn,
