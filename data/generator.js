@@ -1,10 +1,8 @@
-//alread have players, play type, and team info (copy into storage to reference)
-//grab two random teams, current timestamp for game info (save game id)
-
-//generate 40,000 games
 var fs = require('fs');
 var moment = require('moment');
 var data = require('./playerTeamArrays.js');
+var send = require('../externalsimulation/sendReq.js');
+var request = require('request');
 
 var allGames = [];
 var allPlays = [];
@@ -30,7 +28,7 @@ var startGame = (gameId, startTime) => {
   var gameLine = `${homeTeam},${awayTeam},${startTime}`;
 
   //save plays
-  allGames.push(gameLine);
+  // allGames.push(gameLine);
 
   var gameInfo = {gameId, homeTeam, awayTeam, homeTeamName, awayTeamName};
   return gameInfo;
@@ -48,7 +46,7 @@ var getPlayers = (teamId) => {
 
 class Ballgame {
 
-  constructor(options, gameStart) {
+  constructor(options, gameStart, fakeReq) {
     this.gameId = options.gameId;
     this.homeTeam = options.homeTeam;
     this.awayTeam = options.awayTeam;
@@ -61,12 +59,13 @@ class Ballgame {
     this.awayTeamName = options.awayTeamName;
     this.gameStart = gameStart;
     this.currentTime = moment(gameStart);
+    this.fakeReq = fakeReq;
   }
 
   initiatePlayCreation() {
     //keep calling create play until game is over
     //2880 seconds in a game
-    while(this.gameTime < 2880) {
+   while(this.gameTime < 2880) {
       this._createPlay();
     }
   }
@@ -84,7 +83,7 @@ class Ballgame {
     if(this.gameTime === -1) {
       playType = 1;
       this.gameTime = 0;
-      var playLine = `${this.gameId},,,,${this.homeScore},${this.awayScore},${playLength}`;
+      var playLine = `${this.homeTeam},${this.awayTeam},${moment(this.gameStart).format()},${playType},,,${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`;
       playTypeName = 'start of game';
     } else {
       //generate random play type
@@ -127,58 +126,103 @@ class Ballgame {
       this.gameTime+= playLength;
       this.currentTime = this.currentTime.add(playLength, 'seconds');
       // console.log(this.currentTime.format());
+      //save plays
+      var playLine = `${this.homeTeam},${this.awayTeam},${moment(this.gameStart).format()},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`
     }
 
-    //save plays
-    var playLine = `${this.gameId},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength}`
+    
     allPlays.push(playLine);
     var elastiObj = {
       gameDate: this.gameStart,
-      hometeam: this.homeTeamName,
+      homeTeam: this.homeTeamName,
       awayTeam: this.awayTeamName,
       firstName: playerFn,
       lastName: playerLn,
       playType: playTypeName,
       playLength: playLength,
-      totalGameTime: this.gameTime,
+      totalGameTime: this.currentTime.format(),
       points: points,
       homeScore: this.homeScore,
-      awayScore: this.awayScore
+      awayScore: this.awayScore,
+      homeTeamId: this.homeTeam,
+      awayTeamId: this.awayTeam
     }
-    elastiRows.push( { index:  { _index: 'bball', _type: 'firstshot' } },)
-    elastiRows.push(elastiObj);
+    if(!this.fakeReq) {
+      elastiRows.push(JSON.stringify({ index:  { _index: 'rocket', _type: 'firstshot' } },))
+    } 
+    elastiRows.push(JSON.stringify(elastiObj));
   }
 }
 
-var createGame = () => {
+var createGame = (gameId, gameStart, fakeReq) => {
   
-  var gameCount = 1;
+  var gameCount = gameId;
   //aug 1 2017
-  var gameStartDate = moment(1501608234000);
-  while(gameCount < 15000) {
+  //1501608234000
+  var gameStartDate = moment(gameStart);
+  while(gameCount < gameId + 1 /*200*/) {
     var gameInfo = startGame(gameCount, gameStartDate.format());
-    var game = new Ballgame(gameInfo, gameStartDate.format());
+    var game = new Ballgame(gameInfo, gameStartDate.format(), fakeReq);
     game.initiatePlayCreation();
-
-    // //send to elasticsearch
-    // cb(elastiRows);
-    // elastiRows = [];
 
     gameStartDate.add(5, 'minutes');
     gameCount++;  
   }
   
   //save games
-  fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
-    if (err) throw err;
-    // console.log(`${gameLine} was appended to file!`);
-  });
-  //save plays
-  fs.appendFile('./data/play_info.csv', allPlays.join('\n') + '\n', (err) => {
-    if (err) throw err;
-    // console.log(`${playLine} was appended to file!`);
-  });
-  return elastiRows;
+  if(!fakeReq) {
+    // fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
+    //   if (err) throw err;
+    // });
+    fs.appendFile('./data/play_info.csv', allPlays.join('\n') + '\n', (err) => {
+      if (err) throw err;
+    });
+    // var xxx = elastiRows.join('\n');
+    // fs.appendFile('./data/elasicsearchData.json', xxx, (err) => {
+    //   if (err) throw err;
+    // });
+  } else {
+    // var xxx = elastiRows.join(',');
+    // fs.appendFile('./data/elasicsearchData.json', JSON.stringify(elastiRows), (err) => {
+    //   if (err) throw err;
+    // });
+    //send http request
+    // console.log(JSON.parse(elastiRows[0]))
+    // var ss = JSON.parse(elastiRows[0])
+    // var data = {test:'test'}
+    // request.post({
+    // url: 'http://localhost:3000/newgame',
+    // // method: 'POST',
+    // headers: {'content-type': 'application/json'},
+    // // 'Content-Type': 'application/json',
+    // body: elastiRows[0]});
+
+    // elastiRows.forEach((val, i) => {
+    //   if(i === 0) {
+
+     
+    //   request.post({
+    //     url: 'http://localhost:3000/newgame',
+    //     // method: 'POST',
+    //     headers: {'content-type': 'application/json'},
+    //     // 'Content-Type': 'application/json',
+    //     body: val});
+
+    //   }
+    // })
+    send.sendGame(elastiRows)
+
+
+  }
+
+  allGames = [];
+  allPlays = [];
+  // console.log(typeof elastiRows[0])
+
+
+  var returnVal = elastiRows;
+  elastiRows = [];
+  return returnVal;
 }
 // createGame();
 module.exports.creator = createGame;

@@ -10,12 +10,12 @@ CREATE TABLE player_info(
   last_name TEXT NOT NULL
 );
 
-CREATE TABLE game_info(
-  id SERIAL PRIMARY KEY NOT NULL,
-  home_team_id INT NOT NULL REFERENCES team_info(id),
-  away_team_id INT NOT NULL REFERENCES team_info(id),
-  game_date TIMESTAMP
-);
+-- CREATE TABLE game_info(
+--   id SERIAL PRIMARY KEY NOT NULL,
+--   home_team_id INT NOT NULL REFERENCES team_info(id),
+--   away_team_id INT NOT NULL REFERENCES team_info(id),
+--   game_date TIMESTAMP
+-- );
 
 CREATE TABLE play_type(
   id SERIAL PRIMARY KEY NOT NULL,
@@ -24,7 +24,10 @@ CREATE TABLE play_type(
 
 CREATE TABLE play_info(
   id SERIAL PRIMARY KEY NOT NULL,
-  game_id INT NOT NULL REFERENCES game_info(id),
+  -- game_id INT NOT NULL REFERENCES game_info(id),
+  home_team_id INT NOT NULL REFERENCES team_info(id),
+  away_team_id INT NOT NULL REFERENCES team_info(id),
+  game_start_date TIMESTAMP,
   -- team_id  INT REFERENCES team_info(id),
   play_type_id INT NOT NULL REFERENCES play_type(id),
   player_id INT REFERENCES player_info(id),

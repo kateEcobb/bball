@@ -1,11 +1,5 @@
-// var express = require('express');
-// var app = express();
 
-// app.get('/', function(req, res){
-//   res.send('hello world');
-// });
-
-// app.listen(3000);
+var moment = require('moment');
 
 var elasticsearch = require('elasticsearch');
 var generate = require('../data/generator.js')
@@ -14,44 +8,45 @@ var client = new elasticsearch.Client({
   log: 'trace'
 });
 
-// var elasticsearchInsert = (info) => {
-//   // console.log('data>>>>>>>>>>', dataArray)
-//   client.bulk({
-//     body: info
-//   }, function (err, resp) {
-//     console.log('error>>>>>>>>', err)
-//     console.log('response>>>>>>>>', resp)
-//   });
-// }
+// client.ping({
+//   requestTimeout: 30000,
+// })
+// .then((response) => {
+//   console.log('All is well');
+// })
+// .catch((err) => {console.log('error')})
 
-client.ping({
-  requestTimeout: 30000,
-}, function (error) {
-  if (error) {
-    console.error('elasticsearch cluster is down!');
-  } else {
-    console.log('All is well');
-    var dataArray = generate.creator();
-    // client.bulk({
-    //   body: dataArray
-    // }, function (err, resp) {
-    //   console.log('error>>>>>>>>', err)
-    //   console.log('response>>>>>>>>', resp)
-    // });
+var massProduce = (gameId, startDate, fakeReq) => {
+  var dataArray = generate.creator(gameId, startDate, fakeReq);
+  // if(!fakeReq) {
+  //   return client.bulk({body: dataArray});
+  // }
+}
+
+var batch = /*async*/ (totalGames, startDate, fakeReq) => {
+
+  // var totalGames = 40000;
+  var gamesSoFar = 0;
+  // var gameStartTime = moment(1501608234000);
+  var gameStartTime = moment(startDate);
+  while(gamesSoFar < totalGames) {
+    massProduce(gamesSoFar+1, gameStartTime, fakeReq);
+    // await massProduce(gamesSoFar+1, gameStartTime, fakeReq)
+    // .then((res) => {
+    //   console.log('res', res)
+    // })
+    // .catch((err) => {
+    //   console.log('err', err)
+    // })
+    // gamesSoFar+=200;
+    gamesSoFar+=1;
+    gameStartTime =gameStartTime.add(3, 'days')
   }
-});
-// client.indices.delete({
-//   index: 'test_index',
-//   ignore: [404]
-// }).then(function (body) {
-//   // since we told the client to ignore 404 errors, the
-//   // promise is resolved even if the index does not exist
-//   console.log('index was deleted or never existed');
-// }, function (error) {
-//   // oh no!
-// });
 
-// var dataArray = generate.creator(elasticsearchInsert);
+}
+// batch();
+
+module.exports.batch = batch;
 
 /*
 
