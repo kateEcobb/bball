@@ -17,5 +17,5 @@ var fs = require('fs');
 //if doesn't work, ask about async await
 //or write to json file and upload later
 var createGames = require('./index.js'); 
-createGames.batch(10000, 1501608234000);
+createGames.batch(1, 1501608234000);
 // fs.createReadStream('./data/elasicsearchData.json').pipe(request.post({uri: 'http://localhost:9200/_bulk', 'Content-Type': 'application/x-ndjson'}, (err, res) => {console.log(err, res)}))
