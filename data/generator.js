@@ -28,7 +28,7 @@ var startGame = (gameId, startTime) => {
   var gameLine = `${homeTeam},${awayTeam},${startTime}`;
 
   //save plays
-  allGames.push(gameLine);
+  // allGames.push(gameLine);
 
   var gameInfo = {gameId, homeTeam, awayTeam, homeTeamName, awayTeamName};
   return gameInfo;
@@ -83,7 +83,7 @@ class Ballgame {
     if(this.gameTime === -1) {
       playType = 1;
       this.gameTime = 0;
-      var playLine = `${this.gameId},${playType},,,${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`;
+      var playLine = `${this.homeTeam},${this.awayTeam},${moment(this.gameStart).format()},${playType},,,${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`;
       playTypeName = 'start of game';
     } else {
       //generate random play type
@@ -127,7 +127,7 @@ class Ballgame {
       this.currentTime = this.currentTime.add(playLength, 'seconds');
       // console.log(this.currentTime.format());
       //save plays
-      var playLine = `${this.gameId},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`
+      var playLine = `${this.homeTeam},${this.awayTeam},${moment(this.gameStart).format()},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`
     }
 
     
@@ -143,7 +143,9 @@ class Ballgame {
       totalGameTime: this.currentTime.format(),
       points: points,
       homeScore: this.homeScore,
-      awayScore: this.awayScore
+      awayScore: this.awayScore,
+      homeTeamId: this.homeTeam,
+      awayTeamId: this.awayTeam
     }
     if(!this.fakeReq) {
       elastiRows.push(JSON.stringify({ index:  { _index: 'rocket', _type: 'firstshot' } },))
@@ -169,9 +171,9 @@ var createGame = (gameId, gameStart, fakeReq) => {
   
   //save games
   if(!fakeReq) {
-    fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
-      if (err) throw err;
-    });
+    // fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
+    //   if (err) throw err;
+    // });
     fs.appendFile('./data/play_info.csv', allPlays.join('\n') + '\n', (err) => {
       if (err) throw err;
     });
