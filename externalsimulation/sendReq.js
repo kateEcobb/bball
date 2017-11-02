@@ -10,11 +10,11 @@ var sendGame = (data) => {
   //         // method: 'POST',
   //         headers: {'content-type': 'application/json'},
   //         // 'Content-Type': 'application/json',
-  //         body: data[0]});
+  //         body: data[1]});
   data.forEach((val, i) => {
     
     if(i%50 === 0) {
-      waitTime+=1000 
+      waitTime+=5000 
       // console.log('inc') 
     }
     setTimeout(function() {
