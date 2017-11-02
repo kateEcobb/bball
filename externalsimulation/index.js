@@ -15,8 +15,8 @@ var addGames = () => {
   createGames.batch(totalGames, gameStartTime, true)
 }
 
-var task = cron.schedule('* * * * *', function(){
-  console.log('running a task every minute');
-  addGames();
- });
-task.start();
+// var task = cron.schedule('* * * * *', function(){
+//   console.log('running a task every minute');
+//   addGames();
+//  });
+// task.start();

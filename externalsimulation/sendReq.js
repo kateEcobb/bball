@@ -1,6 +1,6 @@
 var request = require('request');
-var fs = require('fs');
-var cron = require('node-cron');
+// var fs = require('fs');
+// var cron = require('node-cron');
 var sendGame = (data) => {
   console.log(data.length)
   var waitTime = 0;
@@ -14,7 +14,7 @@ var sendGame = (data) => {
   data.forEach((val, i) => {
     
     if(i%50 === 0) {
-      waitTime+=5000 
+      waitTime+=2000 
       // console.log('inc') 
     }
     setTimeout(function() {

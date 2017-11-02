@@ -9,7 +9,10 @@ var query = async (text, values) => {
   console.log(response)
 
   await client.end()
-  return response.rows[0]
+
+    // return response.rows[0]
+    return response
+
 }
 
 module.exports.query = query;
