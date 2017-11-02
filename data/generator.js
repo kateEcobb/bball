@@ -140,7 +140,7 @@ class Ballgame {
       lastName: playerLn,
       playType: playTypeName,
       playLength: playLength,
-      totalGameTime: this.gameTime,
+      totalGameTime: this.currentTime.format(),
       points: points,
       homeScore: this.homeScore,
       awayScore: this.awayScore
