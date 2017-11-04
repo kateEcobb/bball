@@ -28,7 +28,7 @@ var startGame = (gameId, startTime) => {
   var gameLine = `${homeTeam},${awayTeam},${startTime}`;
 
   //save plays
-  // allGames.push(gameLine);
+  allGames.push(gameLine);
 
   var gameInfo = {gameId, homeTeam, awayTeam, homeTeamName, awayTeamName};
   return gameInfo;
@@ -83,7 +83,7 @@ class Ballgame {
     if(this.gameTime === -1) {
       playType = 1;
       this.gameTime = 0;
-      var playLine = `${this.homeTeam},${this.awayTeam},${moment(this.gameStart).format()},${playType},,,${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`;
+      var playLine = `${this.gameId},,${playType},,,${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`;
       playTypeName = 'start of game';
     } else {
       //generate random play type
@@ -97,11 +97,13 @@ class Ballgame {
         player = this.homePlayers[playerRand].playerId;
         playerFn = this.homePlayers[playerRand].firstName;
         playerLn = this.homePlayers[playerRand].lastName;
+        var teamId = this.homeTeam;
       } else {
         var playerRand = getRandomInt(0, this.awayPlayers.length-1);
         player = this.awayPlayers[playerRand].playerId;
         playerFn = this.awayPlayers[playerRand].firstName;
         playerLn = this.awayPlayers[playerRand].lastName;
+        var teamId = this.awayTeam;
       } 
 
       //generate point val if random play type = shot
@@ -125,14 +127,14 @@ class Ballgame {
       }
       this.gameTime+= playLength;
       this.currentTime = this.currentTime.add(playLength, 'seconds');
-      // console.log(this.currentTime.format());
-      //save plays
-      var playLine = `${this.homeTeam},${this.awayTeam},${moment(this.gameStart).format()},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`
+      
+      var playLine = `${this.gameId},${teamId},${playType},${player},${points},${this.homeScore},${this.awayScore},${playLength},${this.currentTime.format()}`
     }
 
-    
+    //save plays
     allPlays.push(playLine);
-    var elastiObj = {
+
+    var requestObj = {
       gameDate: this.gameStart,
       homeTeam: this.homeTeamName,
       awayTeam: this.awayTeamName,
@@ -147,10 +149,8 @@ class Ballgame {
       homeTeamId: this.homeTeam,
       awayTeamId: this.awayTeam
     }
-    if(!this.fakeReq) {
-      elastiRows.push(JSON.stringify({ index:  { _index: 'rocket', _type: 'firstshot' } },))
-    } 
-    elastiRows.push(JSON.stringify(elastiObj));
+
+    elastiRows.push(JSON.stringify(requestObj));
   }
 }
 
@@ -169,60 +169,23 @@ var createGame = (gameId, gameStart, fakeReq) => {
     gameCount++;  
   }
   
-  //save games
-  if(!fakeReq) {
-    // fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
-    //   if (err) throw err;
-    // });
+
+
+  if(fakeReq) {
+    send.sendGame(elastiRows)
+  } else {
+    //save games
+    fs.appendFile('./data/game_info.csv', allGames.join('\n') + '\n', (err) => {
+      if (err) throw err;
+    });
     fs.appendFile('./data/play_info.csv', allPlays.join('\n') + '\n', (err) => {
       if (err) throw err;
     });
-    // var xxx = elastiRows.join('\n');
-    // fs.appendFile('./data/elasicsearchData.json', xxx, (err) => {
-    //   if (err) throw err;
-    // });
-  } else {
-    // var xxx = elastiRows.join(',');
-    // fs.appendFile('./data/elasicsearchData.json', JSON.stringify(elastiRows), (err) => {
-    //   if (err) throw err;
-    // });
-    //send http request
-    // console.log(JSON.parse(elastiRows[0]))
-    // var ss = JSON.parse(elastiRows[0])
-    // var data = {test:'test'}
-    // request.post({
-    // url: 'http://localhost:3000/newgame',
-    // // method: 'POST',
-    // headers: {'content-type': 'application/json'},
-    // // 'Content-Type': 'application/json',
-    // body: elastiRows[0]});
-
-    // elastiRows.forEach((val, i) => {
-    //   if(i === 0) {
-
-     
-    //   request.post({
-    //     url: 'http://localhost:3000/newgame',
-    //     // method: 'POST',
-    //     headers: {'content-type': 'application/json'},
-    //     // 'Content-Type': 'application/json',
-    //     body: val});
-
-    //   }
-    // })
-    send.sendGame(elastiRows)
-
-
   }
 
   allGames = [];
   allPlays = [];
-  // console.log(typeof elastiRows[0])
 
-
-  var returnVal = elastiRows;
   elastiRows = [];
-  return returnVal;
 }
-// createGame();
 module.exports.creator = createGame;
