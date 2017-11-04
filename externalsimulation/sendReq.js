@@ -1,6 +1,5 @@
 var request = require('request');
-// var fs = require('fs');
-// var cron = require('node-cron');
+
 var sendGame = (data) => {
   console.log(data.length)
   var waitTime = 0;
@@ -15,11 +14,10 @@ var sendGame = (data) => {
     
     if(i%50 === 0) {
       waitTime+=2000 
-      // console.log('inc') 
     }
     setTimeout(function() {
       request.post({
-        url: 'http://localhost:3000/newgame',
+        url: 'http://localhost:2020/newgame',
         headers: {'content-type': 'application/json'},
         body: val});
       
