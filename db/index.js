@@ -1,12 +1,12 @@
 const { Client } = require('pg')
-const connectionString = 'postgresql://whitney:@localhost:5432/bballtwo'
+const connectionString = 'postgresql://whitney:@localhost:5432/bball'
 
 var query = async (text, values) => {
   const client = new Client({connectionString})
   await client.connect()
 
   var response = await client.query(text, values)
-  console.log(response)
+  // console.log(response)
 
   await client.end()
 
