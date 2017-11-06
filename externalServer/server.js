@@ -16,7 +16,8 @@ app.get('/', function(req, res){
 
 app.post('/newgame', helpers.sendToQ, function(req, res){
   console.log(req.body)
-  res.send('game received');
+  // res.send('game received');
+  res.send(req.body.msgStatus);
 });
 
 app.listen(2020);

@@ -19,9 +19,11 @@ var sendToQ = (req, res, next) => {
    sqs.sendMessage(params, function(err, data) {
      if (err) {
        console.log("Error", err);
+       req.body.msgStatus = 'error sending message'
        next();
      } else {
        console.log("Success", data.MessageId);
+       req.body.msgStatus = 'message sent'
        next();
      }
    });
