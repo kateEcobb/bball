@@ -1,5 +1,5 @@
 const { Client } = require('pg')
-const connectionString = 'postgresql://whitney:@localhost:5432/bball'
+const connectionString = 'postgresql://whitney:@localhost:5432/bballtwo'
 
 var query = async (text, values) => {
   const client = new Client({connectionString})
