@@ -1,7 +1,7 @@
 CREATE TABLE team_info(
   id SERIAL PRIMARY KEY NOT NULL,
   team_name TEXT NOT NULL,
-  created_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE player_info(
@@ -9,7 +9,7 @@ CREATE TABLE player_info(
   team_id INT NOT NULL REFERENCES team_info(id),
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
-  created_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE game_info(
@@ -17,13 +17,14 @@ CREATE TABLE game_info(
   home_team_id INT NOT NULL REFERENCES team_info(id),
   away_team_id INT NOT NULL REFERENCES team_info(id),
   game_date TIMESTAMP,
-  created_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT now(),
+  UNIQUE (home_team_id, away_team_id, game_date)
 );
 
 CREATE TABLE play_type(
   id SERIAL PRIMARY KEY NOT NULL,
   play_name TEXT NOT NULL,
-  created_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT now()
 );
 
 /*FIX FOR DEFAULT TS*/
@@ -41,5 +42,5 @@ CREATE TABLE play_info(
   away_score INT,
   play_length INT,
   total_game_time TIMESTAMP,
-  created_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT now()
 );
