@@ -4,3 +4,4 @@ node_modules
 data/historical
 server/config/**
 externalServer/config**
+logstash.conf
