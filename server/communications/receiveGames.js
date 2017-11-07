@@ -6,22 +6,21 @@ var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 var queueURL = "https://sqs.us-east-1.amazonaws.com/630349627985/playerRating";
 
 
-var params = {
-  Attributes: {
-   "ReceiveMessageWaitTimeSeconds": "3",
-  },
-  QueueUrl: queueURL
- };
+// var params = {
+//   Attributes: {
+//    "ReceiveMessageWaitTimeSeconds": "3",
+//   },
+//   QueueUrl: queueURL
+//  };
  
- sqs.setQueueAttributes(params, function(err, data) {
-   if (err) {
-     console.log("Error", err);
-   } else {
-     console.log("Success", data);
-   }
- });
+//  sqs.setQueueAttributes(params, function(err, data) {
+//    if (err) {
+//      console.log("Error", err);
+//    } else {
+//      console.log("Success", data);
+//    }
+//  });
 
-//you're giong to have to move this so it doesn't get rewritten?
 var localCache = [];
 
 
@@ -33,7 +32,7 @@ var receive = () => {
       "All"
     ],
     QueueUrl: queueURL,
-    VisibilityTimeout: 0,
+    VisibilityTimeout: 20,
     WaitTimeSeconds: 0
   };
   
@@ -41,8 +40,12 @@ var receive = () => {
     if (err) {
       console.log("Receive Error", err);
     } else {
-      console.log('message received', data.Messages[0].Body)
-      checkCacheForGame(JSON.parse(data.Messages[0].Body), data.Messages[0].ReceiptHandle)
+      //check if there even is a message!
+      console.log(data.Messages)
+      if(data.Messages){
+        console.log('message received', data.Messages[0].Body)
+        checkCacheForGame(JSON.parse(data.Messages[0].Body), data.Messages[0].ReceiptHandle)
+      }
     }
   });
 }
@@ -138,9 +141,9 @@ var insertGame = (message) => {
 var insertPlay = (message) => {
 
   var qString = `insert into play_info (game_id, team_id, play_type_id, player_id, points, home_score, away_score, play_length, total_game_time) 
-                  values ($1, (select team_id from player_info where first_name = $3 and last_name = $4),
+                  values ($1, (select team_id from player_info where first_name = $3 and last_name = $4 limit 1),
                   (select id from play_type where play_name = $2), 
-                  (select id from player_info where first_name = $3 and last_name = $4), 
+                  (select id from player_info where first_name = $3 and last_name = $4 limit 1), 
                   $5, $6, $7, $8, $9);`;
   var params = [message.gameId, message.playType, message.firstName, message.lastName, message.points, message.homeScore, message.awayScore, message.playLength, message.totalGameTime];
 
@@ -169,7 +172,12 @@ var deleteMessage = (receiptId) => {
   });
 }
 // receive();
-setInterval(receive, 1000)
+// receive();
+setInterval(receive, 50)
+
+
+
+
 // module.exports.recieveGame = receive;
 
 
