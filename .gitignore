@@ -3,3 +3,5 @@ node_modules
 /data/play_info.csv
 data/historical
 server/config/**
+externalServer/config**
+logstash.conf

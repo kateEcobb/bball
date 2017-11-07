@@ -7,10 +7,10 @@ var calculate = (results) => {
   var points = results.map((obj) => {
     return obj.sum;
   })
-  // var max = points.reduce(function(a, b) {
-  //     return Math.max(a, b);
-  // });
-  var max = 55;
+  var max = points.reduce(function(a, b) {
+      return Math.max(a, b);
+  });
+  // var max = 55;
   var messages = results.map((obj) => {
     var sqsObj = {
       firstName: obj.first_name,
@@ -52,13 +52,13 @@ var getPlayerTotals = () => {
   })
 }
 
-getPlayerTotals();
-// var task = cron.schedule('* 5 * * *', function(){
-//   //0 */45
-//   console.log('running a task every five minutes');
-//   getPlayerTotals();
-//  });
-// task.start();
+// getPlayerTotals();
+var task = cron.schedule('* * * * *', function(){
+  //0 */45
+  console.log('running a task every five minutes');
+  getPlayerTotals();
+ });
+task.start();
 
 /*select 
 p.player_id,

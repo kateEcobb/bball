@@ -6,7 +6,7 @@ var query = async (text, values) => {
   await client.connect()
 
   var response = await client.query(text, values)
-  console.log(response)
+  // console.log(response)
 
   await client.end()
 

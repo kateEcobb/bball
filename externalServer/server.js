@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
-var helpers = require('./helpers.js');
+var helpers = require('./helpers.js')
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -14,10 +14,10 @@ app.get('/', function(req, res){
   res.send('hello world');
 });
 
-app.post('/newgame', helpers.insertGame, function(req, res){
+app.post('/newgame', helpers.sendToQ, function(req, res){
   console.log(req.body)
-  res.send('game received');
+  // res.send('game received');
+  res.send(req.body.msgStatus);
 });
 
-app.listen(3000);
-
+app.listen(2020);
